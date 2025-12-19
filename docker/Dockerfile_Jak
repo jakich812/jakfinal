@@ -1,0 +1,28 @@
+# Stage 1: Build (Сборка)
+FROM gradle:8.2.1-jdk17 AS build
+WORKDIR /app
+# Копируем файлы приложения
+COPY app/ . 
+RUN gradle build -x test --no-daemon
+
+# Stage 2: Runtime (Запуск)
+FROM amazoncorretto:17-alpine
+WORKDIR /app
+
+# Устанавливаем curl (нужен для HEALTHCHECK в пункте 43)
+RUN apk add --no-cache curl
+
+# Создаем пользователя для безопасности
+RUN adduser -D jak_user
+USER jak_user
+
+# Копируем собранный jar
+COPY --from=build /app/build/libs/*.jar app.jar
+
+EXPOSE 8080
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
