@@ -1,19 +1,26 @@
 plugins {
-    id 'org.springframework.boot' version '3.1.2'
-    id 'io.spring.dependency-management' version '1.1.0'
     id 'java'
+    id 'org.springframework.boot' version '3.2.2'
+    id 'io.spring.dependency-management' version '1.1.4'
 }
 
 group = 'com.jak'
-version = '1.0.0'
-sourceCompatibility = '17'
+version = '0.0.1-SNAPSHOT'
+
+// Вот этот блок исправляет твою ошибку
+java {
+    sourceCompatibility = '17'
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation 'org.postgresql:postgresql'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
 }
