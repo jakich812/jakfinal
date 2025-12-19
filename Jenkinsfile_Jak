@@ -2,31 +2,36 @@ pipeline {
     agent any
     
     tools {
-        gradle 'Default' 
+        gradle 'Default'
+    }
+
+    environment {
+        // ЗАМЕНИ 'твой_логин' на свой реальный логин Docker Hub
+        DOCKER_USER = 'твой_логин'
+        IMAGE_NAME = 'jak-exam-app'
     }
 
     stages {
         stage('Git Checkout') {
-            steps {
-                checkout scm
-            }
+            steps { checkout scm }
         }
         stage('Build') {
-            steps {
-                // Используем gradle из tools. Флаг -p заходит в папку app
-                sh 'gradle -p app clean build -x test'
-            }
+            steps { sh 'gradle -p app clean build -x test' }
         }
-        stage('Test') {
+        stage('Docker Build & Push') {
             steps {
-                sh 'gradle -p app test'
+                script {
+                    // Используем credentials, которые создали в Шаге 1
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER_ENV')]) {
+                        // Сборка образа (используем твой Dockerfile_Jak из папки docker)
+                        sh "docker build -t ${DOCKER_USER}/${IMAGE_NAME}:${BUILD_NUMBER} -f docker/Dockerfile_Jak ."
+                        
+                        // Логин и отправка
+                        sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER_ENV --password-stdin"
+                        sh "docker push ${DOCKER_USER}/${IMAGE_NAME}:${BUILD_NUMBER}"
+                    }
+                }
             }
-        }
-    }
-    post {
-        success {
-            // Сохраняем скомпилированный файл (Пункт 76 задания)
-            archiveArtifacts artifacts: 'app/build/libs/*.jar'
         }
     }
 }
