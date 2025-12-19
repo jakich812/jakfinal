@@ -1,29 +1,32 @@
 pipeline {
     agent any
+    
+    tools {
+        gradle 'Default' 
+    }
 
     stages {
         stage('Git Checkout') {
             steps {
-                checkout scm // Пункт 68
+                checkout scm
             }
         }
         stage('Build') {
             steps {
-                // Используем Gradle Wrapper (Пункт 69)
-                sh 'chmod +x ./app/gradlew'
-                sh './app/gradlew -p app clean build -x test'
+                // Используем gradle из tools. Флаг -p заходит в папку app
+                sh 'gradle -p app clean build -x test'
             }
         }
         stage('Test') {
             steps {
-                // Пункт 70, 79
-                sh './app/gradlew -p app test'
+                sh 'gradle -p app test'
             }
         }
     }
     post {
-        always {
-            archiveArtifacts artifacts: 'app/build/libs/*.jar' // Пункт 76
+        success {
+            // Сохраняем скомпилированный файл (Пункт 76 задания)
+            archiveArtifacts artifacts: 'app/build/libs/*.jar'
         }
     }
 }
