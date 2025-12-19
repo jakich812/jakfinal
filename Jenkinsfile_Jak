@@ -7,7 +7,7 @@ pipeline {
 
     environment {
         // ЗАМЕНИ 'твой_логин' на свой реальный логин Docker Hub
-        DOCKER_USER = 'твой_логин'
+        DOCKER_USER = 'jakich'
         IMAGE_NAME = 'jak-exam-app'
     }
 
